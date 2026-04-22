@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SIM_PRO_DICKY</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+  <style>
+    body { margin:0; font-family: Arial; }
+
+    /* HEADER */
+    #header{
+      position:absolute;
+      z-index:999;
+      width:100%;
+      background:#0b1f14;
+      color:white;
+      text-align:center;
+      padding:10px;
+      font-weight:bold;
+    }
+
+    #map{ height:100vh; }
+
+    /* PANEL INFO */
+    #panel{
+      position:absolute;
+      right:10px;
+      top:80px;
+      width:240px;
+      background:white;
+      padding:10px;
+      z-index:999;
+      border-radius:10px;
+      box-shadow:0 0 10px rgba(0,0,0,0.3);
+      font-size:13px;
+    }
+
+    /* LOGO DC DI MAP */
+    #dcLogo{
+      position:absolute;
+      z-index:1000;
+      top:100px;
+      left:10px;
+      width:45px;
+      height:45px;
+      background:#1f6f3f;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:50%;
+      font-weight:bold;
+      box-shadow:0 0 8px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- HEADER + LOGO SAWIT -->
+<div id="header">
+  🌴 SIM_PRO_DICKY | WEBGIS ESTATE SAWIT 🌴
+</div>
+
+<!-- DC LOGO -->
+<div id="dcLogo">DC</div>
+
+<!-- PANEL INFO -->
+<div id="panel">
+<b>📊 INFO BLOK</b><hr>
+Klik blok di peta
+</div>
+
+<!-- MAP -->
+<div id="map"></div>
+
+<script>
+
+// =========================
+// MAP INIT (YOGYAKARTA AREA)
+// =========================
+var map = L.map('map').setView([-7.747, 110.355], 17);
+
+// =========================
+// BASE MAP LAYER
+// =========================
+var satellite = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { attribution:'Satellite' }
+);
+
+var osm = L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  { attribution:'OSM' }
+);
+
+satellite.addTo(map);
+
+L.control.layers({
+  "🌍 Satellite": satellite,
+  "🗺️ OSM": osm
+}).addTo(map);
+
+// =========================
+// PANEL UPDATE
+// =========================
+function updatePanel(name, luas){
+  document.getElementById("panel").innerHTML =
+  "<b>📊 INFO BLOK</b><hr>" +
+  "🌴 " + name + "<br>" +
+  "📏 Luas: " + luas + " Ha";
+}
+
+// =========================
+// HITUNG LUAS (VALID GIS)
+// =========================
+function getArea(layer){
+  return (turf.area(layer.toGeoJSON()) / 10000).toFixed(2);
+}
+
+// =========================
+// SKALA REAL SAWIT (±20–30 Ha)
+// =========================
+let baseLat = -7.747;
+let baseLng = 110.350;
+
+// jarak antar blok (estate system)
+let step = 0.0032;
+
+// ukuran blok
+let size = 0.0024;
+
+// =========================
+// FUNCTION BLOK SAWIT
+// =========================
+function addBlock(name, i, j, color){
+
+  let lat = baseLat + (i * step);
+  let lng = baseLng + (j * step);
+
+  let poly = L.polygon([
+    [lat + size, lng - size],
+    [lat + size, lng + size],
+    [lat - size, lng + size],
+    [lat - size, lng - size]
+  ], {
+    color:"#fff",
+    weight:1,
+    fillColor:color,
+    fillOpacity:0.65
+  }).addTo(map);
+
+  poly.on("click", function(){
+
+    let luas = getArea(this);
+
+    this.bindPopup(
+      "<b>🌴 " + name + "</b><br>📏 Luas: " + luas + " Ha"
+    ).openPopup();
+
+    updatePanel(name, luas);
+
+  });
+
+}
+
+// =========================
+// 15 BLOK SAWIT ESTATE
+// =========================
+
+// BARIS 1
+addBlock("B1",0,0,"#0b6623");
+addBlock("B2",0,1,"#145a32");
+addBlock("B3",0,2,"#2e7d32");
+addBlock("B4",0,3,"#1b5e20");
+addBlock("B5",0,4,"#ff8c00");
+
+// BARIS 2
+addBlock("B6",1,0,"#c62828");
+addBlock("B7",1,1,"#6a1b9a");
+addBlock("B8",1,2,"#1565c0");
+addBlock("B9",1,3,"#00838f");
+addBlock("B10",1,4,"#5d4037");
+
+// BARIS 3
+addBlock("B11",2,0,"#ad1457");
+addBlock("B12",2,1,"#f9a825");
+addBlock("B13",2,2,"#00695c");
+addBlock("B14",2,3,"#2e7d32");
+addBlock("B15",2,4,"#1b5e20");
+
+</script>
+
+</body>
+</html>
